@@ -149,7 +149,7 @@ export default function LearnCoursePage() {
                   <h1 className="text-xl font-bold text-gray-900">{lesson.title}</h1>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                     <Clock className="w-4 h-4" />
-                    <span>预计 {lesson.duration}</span>
+                    <span>预计 15 分钟</span>
                   </div>
                 </div>
               </div>
