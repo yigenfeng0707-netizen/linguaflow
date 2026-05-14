@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Play,
@@ -71,9 +71,65 @@ export default function ListeningPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(new Set())
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   const material = listeningMaterials[currentMaterialIndex]
   const currentQuestion = material.questions[currentQuestionIndex]
+
+  const stopSpeaking = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsPlaying(false)
+  }, [])
+
+  const speak = useCallback((text: string, rate: number = 1) => {
+    if (!('speechSynthesis' in window)) return
+
+    // 停止之前的语音
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = rate
+    utterance.onend = () => setIsPlaying(false)
+    utterance.onerror = () => setIsPlaying(false)
+    utteranceRef.current = utterance
+
+    setIsPlaying(true)
+    window.speechSynthesis.speak(utterance)
+  }, [])
+
+  // 切换播放/暂停
+  const togglePlay = useCallback(() => {
+    if (isPlaying) {
+      stopSpeaking()
+    } else {
+      speak(material.transcript, playbackSpeed)
+    }
+  }, [isPlaying, stopSpeaking, speak, material.transcript, playbackSpeed])
+
+  // 语速变化时，如果正在播放则重新开始
+  useEffect(() => {
+    if (isPlaying) {
+      speak(material.transcript, playbackSpeed)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playbackSpeed])
+
+  // 切换材料时停止播放
+  useEffect(() => {
+    stopSpeaking()
+  }, [currentMaterialIndex, stopSpeaking])
+
+  // 组件卸载时停止语音
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
 
   const handleAnswer = (index: number) => {
     if (selectedAnswer !== null) return
@@ -125,6 +181,7 @@ export default function ListeningPage() {
             <button
               key={m.id}
               onClick={() => {
+                stopSpeaking()
                 setCurrentMaterialIndex(index)
                 setCurrentQuestionIndex(0)
                 setSelectedAnswer(null)
@@ -174,23 +231,42 @@ export default function ListeningPage() {
 
           {/* 播放控制 */}
           <div className="bg-slate-50 rounded-xl p-4">
-            {/* 进度条 */}
+            {/* 播放状态指示 */}
             <div className="h-2 bg-gray-200 rounded-full mb-4 overflow-hidden">
-              <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: '35%' }} />
+              <div
+                className={`h-full rounded-full transition-all ${isPlaying ? 'bg-primary-500 animate-pulse' : 'bg-gray-300'}`}
+                style={{ width: isPlaying ? '100%' : '0%' }}
+              />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">0:52</span>
+              <span className="text-sm text-gray-500">{isPlaying ? '播放中...' : '就绪'}</span>
               <div className="flex items-center gap-4">
-                <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
+                <button
+                  onClick={() => {
+                    stopSpeaking()
+                    setCurrentMaterialIndex((prev) => Math.max(0, prev - 1))
+                  }}
+                  disabled={currentMaterialIndex === 0}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+                >
                   <SkipBack className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  onClick={togglePlay}
                   className="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors"
                 >
                   {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
                 </button>
-                <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
+                <button
+                  onClick={() => {
+                    stopSpeaking()
+                    if (currentMaterialIndex < listeningMaterials.length - 1) {
+                      setCurrentMaterialIndex((prev) => prev + 1)
+                    }
+                  }}
+                  disabled={currentMaterialIndex >= listeningMaterials.length - 1}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+                >
                   <SkipForward className="w-5 h-5" />
                 </button>
               </div>

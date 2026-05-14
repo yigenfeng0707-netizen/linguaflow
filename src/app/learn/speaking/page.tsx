@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Mic,
@@ -47,11 +47,49 @@ export default function SpeakingPage() {
   const [isRecording, setIsRecording] = useState(false)
   const [hasRecorded, setHasRecorded] = useState(false)
   const [showChinese, setShowChinese] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
   const [scores, setScores] = useState<Record<number, { pronunciation: number; fluency: number; overall: number }>>({})
 
   const material = speakingMaterials[currentMaterialIndex]
   const sentence = material.sentences[currentSentenceIndex]
   const score = scores[sentence.id]
+
+  const speak = useCallback((text: string) => {
+    if (!('speechSynthesis' in window)) return
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.9
+    utterance.pitch = 1
+    utterance.onend = () => setIsSpeaking(false)
+    utterance.onerror = () => setIsSpeaking(false)
+
+    setIsSpeaking(true)
+    window.speechSynthesis.speak(utterance)
+  }, [])
+
+  const handlePlayStandard = useCallback(() => {
+    speak(sentence.text)
+  }, [speak, sentence.text])
+
+  // 切换句子时停止播放
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
+  }, [currentSentenceIndex, currentMaterialIndex])
+
+  // 组件卸载时停止语音
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
 
   const handleStartRecording = () => {
     setIsRecording(true)
@@ -196,9 +234,17 @@ export default function SpeakingPage() {
 
           {/* 播放原音按钮 */}
           <div className="flex justify-center mb-8">
-            <button className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors">
-              <Volume2 className="w-5 h-5" />
-              播放标准发音
+            <button
+              onClick={handlePlayStandard}
+              disabled={isSpeaking}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-colors ${
+                isSpeaking
+                  ? 'bg-blue-100 text-blue-400 cursor-wait'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
+              <Volume2 className={`w-5 h-5 ${isSpeaking ? 'animate-pulse' : ''}`} />
+              {isSpeaking ? '正在播放...' : '播放标准发音'}
             </button>
           </div>
 

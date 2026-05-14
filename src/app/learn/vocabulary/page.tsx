@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   BookOpen,
@@ -37,8 +37,42 @@ export default function VocabularyPage() {
   const [quizAnswer, setQuizAnswer] = useState<string | null>(null)
   const [spellingInput, setSpellingInput] = useState('')
   const [spellingResult, setSpellingResult] = useState<boolean | null>(null)
+  const [isSpeaking, setIsSpeaking] = useState(false)
 
   const currentWord = vocabularyData[currentIndex]
+
+  const speakWord = useCallback((word: string) => {
+    if (!('speechSynthesis' in window)) return
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(word)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.85
+    utterance.pitch = 1
+    utterance.onend = () => setIsSpeaking(false)
+    utterance.onerror = () => setIsSpeaking(false)
+
+    setIsSpeaking(true)
+    window.speechSynthesis.speak(utterance)
+  }, [])
+
+  // 切换单词时停止播放
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
+  }, [currentIndex])
+
+  // 组件卸载时停止语音
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
 
   const handleNext = () => {
     setFlipped(false)
@@ -148,8 +182,16 @@ export default function VocabularyPage() {
                   <div className="text-4xl font-bold text-gray-900 mb-4">{currentWord.word}</div>
                   <div className="text-lg text-gray-500 mb-6">{currentWord.phonetic}</div>
                   <div className="flex items-center justify-center gap-4">
-                    <button className="p-3 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors">
-                      <Volume2 className="w-5 h-5 text-blue-500" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); speakWord(currentWord.word) }}
+                      disabled={isSpeaking}
+                      className={`p-3 rounded-full transition-colors ${
+                        isSpeaking
+                          ? 'bg-blue-100 cursor-wait'
+                          : 'bg-blue-50 hover:bg-blue-100'
+                      }`}
+                    >
+                      <Volume2 className={`w-5 h-5 ${isSpeaking ? 'text-blue-400 animate-pulse' : 'text-blue-500'}`} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleMastered(currentWord.id) }}
