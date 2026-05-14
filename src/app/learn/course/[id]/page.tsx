@@ -61,11 +61,35 @@ const courseLearningData: Record<string, {
 export default function LearnCoursePage() {
   const params = useParams()
   const router = useRouter()
-  const id = params.id as string
+  const id = typeof params.id === 'string' ? params.id : ''
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<number>>(new Set())
 
-  const course = courseLearningData[id] || courseLearningData['1']
+  // 验证 ID 是否有效，无效时不回退到默认数据
+  const course = courseLearningData[id]
+
+  // 如果课程不存在，显示未找到页面
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">课程未找到</h1>
+            <p className="text-gray-600 mb-6">该课程不存在或已被删除</p>
+            <Link
+              href="/learn"
+              className="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              返回学习中心
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   const lesson = course.currentLesson
   const completedCount = course.lessons.filter((l) => l.completed || completedLessonIds.has(l.id)).length
 

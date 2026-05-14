@@ -73,10 +73,11 @@ const courseDetails: Record<string, {
 
 export default function CourseDetailPage() {
   const params = useParams()
-  const id = params.id as string
+  const id = typeof params.id === 'string' ? params.id : ''
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]))
 
-  const course = courseDetails[id] || courseDetails['1']
+  // 验证 ID 是否有效，无效时不回退到默认数据
+  const course = courseDetails[id]
 
   const toggleSection = (index: number) => {
     setExpandedSections((prev) => {
@@ -87,8 +88,34 @@ export default function CourseDetailPage() {
     })
   }
 
+  // 如果课程不存在，显示未找到页面
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Header />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link href="/courses" className="text-sm text-gray-500 hover:text-primary-600 mb-4 inline-flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" />
+            返回课程列表
+          </Link>
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">课程未找到</h1>
+            <p className="text-gray-600 mb-6">该课程不存在或已被删除</p>
+            <Link
+              href="/courses"
+              className="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              返回课程列表
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   const completedLessons = course.outline.flatMap((s) => s.lessons).filter((l) => l.completed).length
-  const progress = Math.round((completedLessons / course.total_lessons) * 100)
+  const progress = course.total_lessons > 0 ? Math.round((completedLessons / course.total_lessons) * 100) : 0
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -129,11 +156,11 @@ export default function CourseDetailPage() {
           <div className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-accent-400 rounded-full flex items-center justify-center text-white font-semibold">
-                {course.instructor.name.charAt(0)}
+                {course.instructor?.name?.charAt(0) || '?'}
               </div>
               <div>
-                <div className="font-medium text-gray-900">{course.instructor.name}</div>
-                <div className="text-sm text-gray-500">{course.instructor.title}</div>
+                <div className="font-medium text-gray-900">{course.instructor?.name || '未知讲师'}</div>
+                <div className="text-sm text-gray-500">{course.instructor?.title || ''}</div>
               </div>
             </div>
             <div className="flex items-center gap-4">

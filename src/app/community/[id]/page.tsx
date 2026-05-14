@@ -14,8 +14,19 @@ import {
   ThumbsUp,
   Flag,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+
+// HTML 转义函数，防止 XSS 攻击
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 // 模拟帖子详情数据
 const postsDetail: Record<string, {
@@ -58,19 +69,46 @@ const postsDetail: Record<string, {
 
 export default function CommunityPostPage() {
   const params = useParams()
-  const id = params.id as string
+  const id = typeof params.id === 'string' ? params.id : ''
   const [liked, setLiked] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [newComments, setNewComments] = useState<string[]>([])
 
-  const post = postsDetail[id] || postsDetail['1']
+  // 验证 ID 是否有效，无效时不回退到默认数据
+  const post = postsDetail[id]
 
   const handleSubmitComment = () => {
     if (commentText.trim()) {
       setNewComments((prev) => [...prev, commentText.trim()])
       setCommentText('')
     }
+  }
+
+  // 如果帖子不存在，显示未找到页面
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link href="/community" className="text-sm text-gray-500 hover:text-primary-600 mb-4 inline-flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" />
+            返回社区
+          </Link>
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">帖子未找到</h1>
+            <p className="text-gray-600 mb-6">该帖子不存在或已被删除</p>
+            <Link
+              href="/community"
+              className="inline-flex items-center px-6 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              返回社区
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -89,12 +127,12 @@ export default function CommunityPostPage() {
           {/* 作者信息 */}
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-accent-400 rounded-full flex items-center justify-center text-white font-semibold">
-              {post.author.name.charAt(0)}
+              {post.author?.name?.charAt(0) || '?'}
             </div>
             <div>
-              <div className="font-medium text-gray-900">{post.author.name}</div>
+              <div className="font-medium text-gray-900">{post.author?.name || '未知用户'}</div>
               <div className="text-sm text-gray-500">
-                {post.author.joinDate} 加入 · {post.author.posts} 篇帖子
+                {post.author?.joinDate || ''} 加入 · {post.author?.posts || 0} 篇帖子
               </div>
             </div>
           </div>
@@ -119,9 +157,11 @@ export default function CommunityPostPage() {
                 <p key={index} className="text-gray-700 leading-relaxed mb-3">
                   {paragraph.split(/(\*\*.*?\*\*)/).map((part, i) => {
                     if (part.startsWith('**') && part.endsWith('**')) {
-                      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+                      // 对粗体内容也进行 HTML 转义
+                      return <strong key={i} className="font-semibold text-gray-900">{escapeHtml(part.slice(2, -2))}</strong>
                     }
-                    return part
+                    // 对普通文本进行 HTML 转义，防止 XSS
+                    return escapeHtml(part)
                   })}
                 </p>
               )
@@ -159,9 +199,13 @@ export default function CommunityPostPage() {
               <span>{bookmarked ? '已收藏' : '收藏'}</span>
             </button>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href)
-                alert('链接已复制到剪贴板')
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(window.location.href)
+                  toast.success('链接已复制到剪贴板')
+                } catch (err) {
+                  toast.error('复制链接失败，请手动复制')
+                }
               }}
               className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors ml-auto"
             >
@@ -189,8 +233,10 @@ export default function CommunityPostPage() {
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="写下你的评论..."
                   rows={3}
+                  maxLength={1000}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
                 />
+                <div className="text-right text-sm text-gray-400 mt-1">{commentText.length}/1000</div>
                 <div className="flex justify-end mt-2">
                   <button
                     onClick={handleSubmitComment}

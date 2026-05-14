@@ -73,6 +73,7 @@ export default function CreatePostPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="输入帖子标题..."
+              minLength={5}
               maxLength={100}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-lg"
             />
@@ -87,8 +88,10 @@ export default function CreatePostPage() {
               onChange={(e) => setContent(e.target.value)}
               placeholder="分享你的学习心得、经验或问题..."
               rows={12}
+              maxLength={5000}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
             />
+            <div className="text-right text-sm text-gray-400 mt-1">{content.length}/5000</div>
           </div>
 
           {/* 标签 */}

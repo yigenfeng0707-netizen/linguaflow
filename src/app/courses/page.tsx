@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Filter, BookOpen, Clock, Users, Star } from 'lucide-react'
+import { Search, Filter, BookOpen, Clock, Users, Star, Loader2, AlertCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -107,6 +107,26 @@ export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState('all')
   const [selectedLevel, setSelectedLevel] = useState('all')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // 模拟数据加载
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        // 模拟API调用延迟
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        // 这里可以添加实际的API调用
+        setLoading(false)
+      } catch (err) {
+        setError('加载课程数据失败，请稍后重试')
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const filteredCourses = coursesData.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -174,7 +194,31 @@ export default function CoursesPage() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <Loader2 className="w-12 h-12 text-primary-500 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-500">加载课程中...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">出错了</h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              重新加载
+            </button>
+          </div>
+        )}
+
         {/* Course Grid */}
+        {!loading && !error && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
             <Link
@@ -237,6 +281,8 @@ export default function CoursesPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">没有找到相关课程</h3>
             <p className="text-gray-500">尝试调整筛选条件或搜索其他关键词</p>
           </div>
+        )}
+        </div>
         )}
       </div>
 

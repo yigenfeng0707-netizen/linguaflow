@@ -11,7 +11,9 @@ import {
   Volume2,
   Star,
   MessageCircle,
+  AlertCircle,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -48,14 +50,23 @@ export default function SpeakingPage() {
   const [hasRecorded, setHasRecorded] = useState(false)
   const [showChinese, setShowChinese] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(true)
   const [scores, setScores] = useState<Record<number, { pronunciation: number; fluency: number; overall: number }>>({})
+
+  // 检查语音API支持
+  useEffect(() => {
+    setSpeechSupported('speechSynthesis' in window)
+  }, [])
 
   const material = speakingMaterials[currentMaterialIndex]
   const sentence = material.sentences[currentSentenceIndex]
   const score = scores[sentence.id]
 
   const speak = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) return
+    if (!('speechSynthesis' in window)) {
+      toast.error('您的浏览器不支持语音播放功能')
+      return
+    }
 
     window.speechSynthesis.cancel()
 
@@ -234,15 +245,30 @@ export default function SpeakingPage() {
             </button>
           </div>
 
+          {/* 语音API不支持提示 */}
+          {!speechSupported && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">语音播放功能不可用</p>
+                  <p className="text-sm text-amber-700">您的浏览器不支持语音合成API，请使用现代浏览器（如Chrome、Edge、Safari）以获得最佳体验</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 播放原音按钮 */}
           <div className="flex justify-center mb-8">
             <button
               onClick={handlePlayStandard}
-              disabled={isSpeaking}
+              disabled={isSpeaking || !speechSupported}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-colors ${
-                isSpeaking
-                  ? 'bg-blue-100 text-blue-400 cursor-wait'
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                !speechSupported
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : isSpeaking
+                    ? 'bg-blue-100 text-blue-400 cursor-wait'
+                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
               }`}
             >
               <Volume2 className={`w-5 h-5 ${isSpeaking ? 'animate-pulse' : ''}`} />

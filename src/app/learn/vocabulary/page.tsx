@@ -13,7 +13,9 @@ import {
   Star,
   Check,
   X,
+  AlertCircle,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -38,11 +40,20 @@ export default function VocabularyPage() {
   const [spellingInput, setSpellingInput] = useState('')
   const [spellingResult, setSpellingResult] = useState<boolean | null>(null)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(true)
 
   const currentWord = vocabularyData[currentIndex]
 
+  // 检查语音API支持
+  useEffect(() => {
+    setSpeechSupported('speechSynthesis' in window)
+  }, [])
+
   const speakWord = useCallback((word: string) => {
-    if (!('speechSynthesis' in window)) return
+    if (!('speechSynthesis' in window)) {
+      toast.error('您的浏览器不支持语音播放功能')
+      return
+    }
 
     window.speechSynthesis.cancel()
 
@@ -184,14 +195,17 @@ export default function VocabularyPage() {
                   <div className="flex items-center justify-center gap-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); speakWord(currentWord.word) }}
-                      disabled={isSpeaking}
+                      disabled={isSpeaking || !speechSupported}
                       className={`p-3 rounded-full transition-colors ${
-                        isSpeaking
-                          ? 'bg-blue-100 cursor-wait'
-                          : 'bg-blue-50 hover:bg-blue-100'
+                        !speechSupported
+                          ? 'bg-gray-100 cursor-not-allowed'
+                          : isSpeaking
+                            ? 'bg-blue-100 cursor-wait'
+                            : 'bg-blue-50 hover:bg-blue-100'
                       }`}
+                      title={!speechSupported ? '您的浏览器不支持语音播放功能' : ''}
                     >
-                      <Volume2 className={`w-5 h-5 ${isSpeaking ? 'text-blue-400 animate-pulse' : 'text-blue-500'}`} />
+                      <Volume2 className={`w-5 h-5 ${!speechSupported ? 'text-gray-400' : isSpeaking ? 'text-blue-400 animate-pulse' : 'text-blue-500'}`} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleMastered(currentWord.id) }}
@@ -203,6 +217,12 @@ export default function VocabularyPage() {
                     </button>
                   </div>
                   <p className="text-sm text-gray-400 mt-6">点击卡片查看释义</p>
+                  {!speechSupported && (
+                    <div className="mt-4 flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>您的浏览器不支持语音播放功能</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center">

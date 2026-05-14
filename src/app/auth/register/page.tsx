@@ -7,6 +7,11 @@ import { BookOpen, Mail, Lock, User, Eye, EyeOff, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
+// 验证正则表达式
+const USERNAME_REGEX = /^[a-zA-Z0-9\u4e00-\u9fa5]+$/ // 只允许字母数字中文
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const PASSWORD_STRENGTH_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/ // 至少包含大小写字母和数字
+
 const languages = [
   { code: 'english', name: '英语', flag: '🇬🇧' },
   { code: 'japanese', name: '日语', flag: '🇯🇵' },
@@ -35,6 +40,24 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 用户名格式验证
+    if (!USERNAME_REGEX.test(formData.username)) {
+      toast.error('用户名只能包含字母、数字和中文')
+      return
+    }
+    
+    // 邮箱格式验证
+    if (!EMAIL_REGEX.test(formData.email)) {
+      toast.error('请输入有效的邮箱地址')
+      return
+    }
+    
+    // 密码强度验证
+    if (!PASSWORD_STRENGTH_REGEX.test(formData.password)) {
+      toast.error('密码必须包含至少一个大写字母、一个小写字母和一个数字')
+      return
+    }
     
     if (formData.password !== formData.confirmPassword) {
       toast.error('两次输入的密码不一致')
@@ -109,6 +132,9 @@ export default function RegisterPage() {
                       value={formData.username}
                       onChange={handleChange}
                       placeholder="你的昵称"
+                      maxLength={20}
+                      pattern="[a-zA-Z0-9\u4e00-\u9fa5]+"
+                      title="用户名只能包含字母、数字和中文"
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                       required
                     />
@@ -127,6 +153,7 @@ export default function RegisterPage() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
+                      maxLength={100}
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                       required
                     />
@@ -144,7 +171,8 @@ export default function RegisterPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="至少8位字符"
+                      placeholder="至少8位字符，包含大小写字母和数字"
+                      maxLength={128}
                       className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                       required
                       minLength={8}

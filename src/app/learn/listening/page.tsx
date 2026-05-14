@@ -12,7 +12,9 @@ import {
   Headphones,
   CheckCircle,
   XCircle,
+  AlertCircle,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -71,7 +73,13 @@ export default function ListeningPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(new Set())
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
+  const [speechSupported, setSpeechSupported] = useState(true)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  // 检查语音API支持
+  useEffect(() => {
+    setSpeechSupported('speechSynthesis' in window)
+  }, [])
 
   const material = listeningMaterials[currentMaterialIndex]
   const currentQuestion = material.questions[currentQuestionIndex]
@@ -84,7 +92,10 @@ export default function ListeningPage() {
   }, [])
 
   const speak = useCallback((text: string, rate: number = 1) => {
-    if (!('speechSynthesis' in window)) return
+    if (!('speechSynthesis' in window)) {
+      toast.error('您的浏览器不支持语音播放功能')
+      return
+    }
 
     // 停止之前的语音
     window.speechSynthesis.cancel()
@@ -111,11 +122,17 @@ export default function ListeningPage() {
 
   // 语速变化时，如果正在播放则重新开始
   useEffect(() => {
+    // 使用 ref 来避免竞态条件导致的语音重叠
     if (isPlaying) {
-      speak(material.transcript, playbackSpeed)
+      // 先停止当前播放，再重新开始
+      stopSpeaking()
+      // 使用 setTimeout 确保语音合成已取消后再开始新的播放
+      const timeoutId = setTimeout(() => {
+        speak(material.transcript, playbackSpeed)
+      }, 50)
+      return () => clearTimeout(timeoutId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playbackSpeed])
+  }, [playbackSpeed, isPlaying, material.transcript, speak, stopSpeaking])
 
   // 切换材料时停止播放
   useEffect(() => {
@@ -199,7 +216,20 @@ export default function ListeningPage() {
           ))}
         </div>
 
-        {/* 音频播放器 */}
+        {/* 语音API不支持提示 */}
+          {!speechSupported && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">语音播放功能不可用</p>
+                  <p className="text-sm text-amber-700">您的浏览器不支持语音合成API，请使用现代浏览器（如Chrome、Edge、Safari）以获得最佳体验</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 音频播放器 */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -264,7 +294,8 @@ export default function ListeningPage() {
                 </button>
                 <button
                   onClick={togglePlay}
-                  className="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors"
+                  disabled={!speechSupported}
+                  className="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
                 </button>
