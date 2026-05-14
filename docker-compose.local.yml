@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: linguaflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: linguaflow
+      POSTGRES_PASSWORD: linguaflow_secure_pass_2024
+      POSTGRES_DB: linguaflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linguaflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: linguaflow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 后端 API
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.local
+    container_name: linguaflow-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://linguaflow:linguaflow_secure_pass_2024@postgres:5432/linguaflow
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: linguaflow_jwt_secret_key_2024_secure
+      SUPABASE_URL: https://ivralexnwkklhgyhgofa.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # 前端
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.local
+    container_name: linguaflow-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_SUPABASE_URL: https://ivralexnwkklhgyhgofa.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
