@@ -197,73 +197,72 @@ export default function CommunityPage() {
 
             {/* Posts */}
             {!loading && !error && (
-            <div className="space-y-4">
-              {filteredPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-accent-400 rounded-full flex items-center justify-center text-white font-semibold">
-                      {post.author.name.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-gray-900">{post.author.name}</span>
-                        <span className="text-gray-400 text-sm flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {post.created_at}
-                        </span>
-                      </div>
-                      <Link href={`/community/${post.id}`}>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600 transition-colors">
-                          {post.title}
-                        </h2>
-                      </Link>
-                      <p className="text-gray-600 mb-4 line-clamp-2">{post.content}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-2">
-                          {post.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full"
-                            >
-                              #{tag}
+              <div className="space-y-4">
+                {filteredPosts.length > 0 ? (
+                  filteredPosts.map((post) => (
+                    <article
+                      key={post.id}
+                      className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-accent-400 rounded-full flex items-center justify-center text-white font-semibold">
+                          {post.author.name.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium text-gray-900">{post.author.name}</span>
+                            <span className="text-gray-400 text-sm flex items-center">
+                              <Clock className="w-4 h-4 mr-1" />
+                              {post.created_at}
                             </span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-4 text-gray-500">
-                          <button
-                            onClick={() => toggleLike(post.id)}
-                            className={`flex items-center gap-1 transition-colors ${likedPosts.has(post.id) ? 'text-red-500' : 'hover:text-red-500'}`}
-                          >
-                            <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-red-500' : ''}`} />
-                            <span>{post.likes + (likedPosts.has(post.id) ? 1 : 0)}</span>
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
-                            <MessageCircle className="w-5 h-5" />
-                            <span>{post.comments}</span>
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
-                            <Share2 className="w-5 h-5" />
-                          </button>
+                          </div>
+                          <Link href={`/community/${post.id}`}>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-2 hover:text-primary-600 transition-colors">
+                              {post.title}
+                            </h2>
+                          </Link>
+                          <p className="text-gray-600 mb-4 line-clamp-2">{post.content}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex gap-2">
+                              {post.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-4 text-gray-500">
+                              <button
+                                onClick={() => toggleLike(post.id)}
+                                className={`flex items-center gap-1 transition-colors ${likedPosts.has(post.id) ? 'text-red-500' : 'hover:text-red-500'}`}
+                              >
+                                <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-red-500' : ''}`} />
+                                <span>{post.likes + (likedPosts.has(post.id) ? 1 : 0)}</span>
+                              </button>
+                              <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
+                                <MessageCircle className="w-5 h-5" />
+                                <span>{post.comments}</span>
+                              </button>
+                              <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
+                                <Share2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </article>
+                  ))
+                ) : (
+                  /* 空状态 */
+                  <div className="text-center py-12">
+                    <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">没有找到相关帖子</h3>
+                    <p className="text-gray-500">尝试调整搜索关键词或切换标签</p>
                   </div>
-                </article>
-              ))}
-            </div>
-
-            {/* 空状态 */}
-            {filteredPosts.length === 0 && (
-              <div className="text-center py-12">
-                <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">没有找到相关帖子</h3>
-                <p className="text-gray-500">尝试调整搜索关键词或切换标签</p>
+                )}
               </div>
-            )}
-            </div>
             )}
 
           {/* Sidebar */}
