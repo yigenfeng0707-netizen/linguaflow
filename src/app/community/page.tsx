@@ -59,6 +59,34 @@ const hotTopics = [
 export default function CommunityPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('latest')
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
+
+  const filteredPosts = postsData
+    .filter((post) => {
+      if (!searchQuery.trim()) return true
+      const query = searchQuery.toLowerCase()
+      return (
+        post.title.toLowerCase().includes(query) ||
+        post.content.toLowerCase().includes(query) ||
+        post.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+        post.author.name.toLowerCase().includes(query)
+      )
+    })
+    .sort((a, b) => {
+      if (activeTab === 'hot') {
+        return b.likes - a.likes
+      }
+      return 0
+    })
+
+  const toggleLike = (postId: string) => {
+    setLikedPosts((prev) => {
+      const next = new Set(prev)
+      if (next.has(postId)) next.delete(postId)
+      else next.add(postId)
+      return next
+    })
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -123,7 +151,7 @@ export default function CommunityPage() {
 
             {/* Posts */}
             <div className="space-y-4">
-              {postsData.map((post) => (
+              {filteredPosts.map((post) => (
                 <article
                   key={post.id}
                   className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -158,9 +186,12 @@ export default function CommunityPage() {
                           ))}
                         </div>
                         <div className="flex items-center gap-4 text-gray-500">
-                          <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
-                            <Heart className="w-5 h-5" />
-                            <span>{post.likes}</span>
+                          <button
+                            onClick={() => toggleLike(post.id)}
+                            className={`flex items-center gap-1 transition-colors ${likedPosts.has(post.id) ? 'text-red-500' : 'hover:text-red-500'}`}
+                          >
+                            <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-red-500' : ''}`} />
+                            <span>{post.likes + (likedPosts.has(post.id) ? 1 : 0)}</span>
                           </button>
                           <button className="flex items-center gap-1 hover:text-primary-500 transition-colors">
                             <MessageCircle className="w-5 h-5" />

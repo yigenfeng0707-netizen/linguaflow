@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   BookOpen,
@@ -29,7 +29,7 @@ const courseLearningData: Record<string, {
     currentLesson: {
       id: 3,
       title: '辅音发音规则',
-      content: `英语中有24个辅音音素，分为清辅音和浊辅音。清辅音发音时声带不振动，浊辅音发音时声带振动。
+      content: `英语中有 24 个辅音音素，分为清辅音和浊辅音。清辅音发音时声带不振动，浊辅音发音时声带振动。
 
 今天我们学习以下辅音的发音方法：
 
@@ -60,15 +60,22 @@ const courseLearningData: Record<string, {
 
 export default function LearnCoursePage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<number>>(new Set())
 
   const course = courseLearningData[id] || courseLearningData['1']
   const lesson = course.currentLesson
-  const completedCount = course.lessons.filter((l) => l.completed).length
+  const completedCount = course.lessons.filter((l) => l.completed || completedLessonIds.has(l.id)).length
 
   const handleCompleteLesson = () => {
-    // 模拟完成课时
+    setCompletedLessonIds((prev) => {
+      const next = new Set(prev)
+      next.add(lesson.id)
+      return next
+    })
+    alert('恭喜！本课已完成！')
   }
 
   return (
@@ -84,7 +91,7 @@ export default function LearnCoursePage() {
               学习中心
             </Link>
             <span className="text-gray-300">/</span>
-            <Link href={`/courses/${id}`} className="text-sm text-gray-500 hover:text-primary-600">
+            <Link href={`/learn/course/${id}`} className="text-sm text-gray-500 hover:text-primary-600">
               {course.title}
             </Link>
           </div>
@@ -105,7 +112,7 @@ export default function LearnCoursePage() {
           {/* 侧边栏 - 课程目录 */}
           {sidebarOpen && (
             <div className="w-80 flex-shrink-0 hidden lg:block">
-              <div className="bg-white rounded-2xl shadow-sm p-4 sticky top-8">
+              <div className="bg-white rounded-2xl shadow-sm p-4 sticky top-24">
                 <h3 className="font-semibold text-gray-900 mb-4 px-2">课程目录</h3>
                 <div className="space-y-1">
                   {course.lessons.map((l) => (
@@ -165,6 +172,18 @@ export default function LearnCoursePage() {
                       </h3>
                     )
                   }
+                  if (paragraph.startsWith('- ')) {
+                    return (
+                      <li key={index} className="text-gray-700 leading-relaxed mb-2 ml-4 list-disc">
+                        {paragraph.slice(2).split(/(\*\*.*?\*\*)/).map((part, i) => {
+                          if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+                          }
+                          return part
+                        })}
+                      </li>
+                    )
+                  }
                   return (
                     <p key={index} className="text-gray-700 leading-relaxed mb-3">
                       {paragraph.split(/(\*\*.*?\*\*)/).map((part, i) => {
@@ -197,7 +216,16 @@ export default function LearnCoursePage() {
 
             {/* 底部操作 */}
             <div className="flex items-center justify-between">
-              <button className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+              <button
+                onClick={() => {
+                  const currentIdx = course.lessons.findIndex((l) => l.id === lesson.id)
+                  if (currentIdx > 0) {
+                    router.push(`/learn/course/${id}`)
+                  }
+                }}
+                disabled={course.lessons.findIndex((l) => l.id === lesson.id) === 0}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ArrowLeft className="w-5 h-5" />
                 上一课
               </button>
@@ -208,7 +236,16 @@ export default function LearnCoursePage() {
                 <CheckCircle className="w-5 h-5" />
                 完成本课
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+              <button
+                onClick={() => {
+                  const currentIdx = course.lessons.findIndex((l) => l.id === lesson.id)
+                  if (currentIdx < course.lessons.length - 1) {
+                    router.push(`/learn/course/${id}`)
+                  }
+                }}
+                disabled={course.lessons.findIndex((l) => l.id === lesson.id) >= course.lessons.length - 1}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 下一课
                 <ArrowRight className="w-5 h-5" />
               </button>

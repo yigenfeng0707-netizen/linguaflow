@@ -5,15 +5,11 @@ import Link from 'next/link'
 import {
   ArrowLeft,
   Trophy,
-  Star,
   Flame,
   BookOpen,
   Clock,
-  Target,
-  Award,
   Lock,
   Calendar,
-  TrendingUp,
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'

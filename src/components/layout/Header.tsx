@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Menu, X, BookOpen, User, Bell } from 'lucide-react'
+import { Menu, X, BookOpen } from 'lucide-react'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -42,7 +42,7 @@ export function Header() {
             </Link>
             <Link
               href="/auth/register"
-              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors"
             >
               免费注册
             </Link>
@@ -61,22 +61,23 @@ export function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-100">
             <nav className="flex flex-col space-y-4">
-              <Link href="/courses" className="text-gray-600 hover:text-primary-600">
+              <Link href="/courses" className="text-gray-600 hover:text-primary-600" onClick={() => setIsMenuOpen(false)}>
                 课程
               </Link>
-              <Link href="/learn" className="text-gray-600 hover:text-primary-600">
+              <Link href="/learn" className="text-gray-600 hover:text-primary-600" onClick={() => setIsMenuOpen(false)}>
                 学习
               </Link>
-              <Link href="/community" className="text-gray-600 hover:text-primary-600">
+              <Link href="/community" className="text-gray-600 hover:text-primary-600" onClick={() => setIsMenuOpen(false)}>
                 社区
               </Link>
               <div className="flex flex-col space-y-2 pt-4 border-t border-slate-100">
-                <Link href="/auth/login" className="text-gray-600">
+                <Link href="/auth/login" className="text-gray-600" onClick={() => setIsMenuOpen(false)}>
                   登录
                 </Link>
                 <Link
                   href="/auth/register"
                   className="px-4 py-2 bg-primary-500 text-white rounded-lg text-center"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   免费注册
                 </Link>

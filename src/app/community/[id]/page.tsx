@@ -62,13 +62,13 @@ export default function CommunityPostPage() {
   const [liked, setLiked] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [commentText, setCommentText] = useState('')
-  const [newComment, setNewComment] = useState<string | null>(null)
+  const [newComments, setNewComments] = useState<string[]>([])
 
   const post = postsDetail[id] || postsDetail['1']
 
   const handleSubmitComment = () => {
     if (commentText.trim()) {
-      setNewComment(commentText.trim())
+      setNewComments((prev) => [...prev, commentText.trim()])
       setCommentText('')
     }
   }
@@ -147,7 +147,7 @@ export default function CommunityPostPage() {
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors">
               <MessageCircle className="w-5 h-5" />
-              <span>{post.comments.length + (newComment ? 1 : 0)}</span>
+              <span>{post.comments.length + newComments.length}</span>
             </button>
             <button
               onClick={() => setBookmarked(!bookmarked)}
@@ -158,7 +158,13 @@ export default function CommunityPostPage() {
               <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-amber-500' : ''}`} />
               <span>{bookmarked ? '已收藏' : '收藏'}</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors ml-auto">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                alert('链接已复制到剪贴板')
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors ml-auto"
+            >
               <Share2 className="w-5 h-5" />
               <span>分享</span>
             </button>
@@ -168,7 +174,7 @@ export default function CommunityPostPage() {
         {/* 评论区 */}
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            评论 ({post.comments.length + (newComment ? 1 : 0)})
+            评论 ({post.comments.length + newComments.length})
           </h2>
 
           {/* 发表评论 */}
@@ -201,8 +207,8 @@ export default function CommunityPostPage() {
 
           {/* 评论列表 */}
           <div className="space-y-4">
-            {newComment && (
-              <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+            {newComments.map((comment, idx) => (
+              <div key={`new-${idx}`} className="flex gap-3 p-4 bg-primary-50 rounded-xl">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-accent-400 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                   我
                 </div>
@@ -211,10 +217,10 @@ export default function CommunityPostPage() {
                     <span className="font-medium text-gray-900">我</span>
                     <span className="text-sm text-gray-400">刚刚</span>
                   </div>
-                  <p className="text-gray-700">{newComment}</p>
+                  <p className="text-gray-700">{comment}</p>
                 </div>
               </div>
-            )}
+            ))}
             {post.comments.map((comment) => (
               <div key={comment.id} className="flex gap-3 p-4 rounded-xl hover:bg-slate-50 transition-colors">
                 <div className="w-10 h-10 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">

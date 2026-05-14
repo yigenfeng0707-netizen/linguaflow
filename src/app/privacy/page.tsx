@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -11,7 +9,7 @@ export default function PrivacyPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">隐私政策</h1>
-        <p className="text-gray-500 mb-8">最后更新日期：2024年5月1日</p>
+        <p className="text-gray-500 mb-8">最后更新日期：2026年5月14日</p>
 
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-10 space-y-8">
           <section>

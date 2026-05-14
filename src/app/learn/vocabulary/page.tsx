@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import {
   BookOpen,
@@ -104,7 +104,7 @@ export default function VocabularyPage() {
   }
 
   // 生成选择题选项
-  const quizOptions = (() => {
+  const quizOptions = useMemo(() => {
     const correct = currentWord.meaning
     const others = vocabularyData
       .filter((w) => w.id !== currentWord.id)
@@ -112,7 +112,7 @@ export default function VocabularyPage() {
       .slice(0, 3)
       .map((w) => w.meaning)
     return [...others, correct].sort(() => Math.random() - 0.5)
-  })()
+  }, [currentWord.id])
 
   return (
     <div className="min-h-screen bg-slate-50">

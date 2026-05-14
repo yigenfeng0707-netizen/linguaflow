@@ -1,13 +1,9 @@
-'use client'
-
 import Link from 'next/link'
 import {
   Globe,
   Users,
   BookOpen,
-  Trophy,
   Heart,
-  Star,
   Target,
   Sparkles,
 } from 'lucide-react'

@@ -234,9 +234,20 @@ export default function ListeningPage() {
             {/* 播放状态指示 */}
             <div className="h-2 bg-gray-200 rounded-full mb-4 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${isPlaying ? 'bg-primary-500 animate-pulse' : 'bg-gray-300'}`}
-                style={{ width: isPlaying ? '100%' : '0%' }}
+                className={`h-full rounded-full transition-all ${isPlaying ? 'bg-primary-500 w-full' : 'bg-gray-300 w-0'} ${isPlaying ? 'animate-pulse' : ''}`}
+                style={isPlaying ? {
+                  width: '100%',
+                  backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
+                  backgroundSize: '1rem 1rem',
+                  animation: 'progress-bar-stripes 1s linear infinite',
+                } : { width: '0%' }}
               />
+              <style jsx>{`
+                @keyframes progress-bar-stripes {
+                  0% { background-position: 1rem 0; }
+                  100% { background-position: 0 0; }
+                }
+              `}</style>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{isPlaying ? '播放中...' : '就绪'}</span>
@@ -258,12 +269,7 @@ export default function ListeningPage() {
                   {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
                 </button>
                 <button
-                  onClick={() => {
-                    stopSpeaking()
-                    if (currentMaterialIndex < listeningMaterials.length - 1) {
-                      setCurrentMaterialIndex((prev) => prev + 1)
-                    }
-                  }}
+                  onClick={handleNextMaterial}
                   disabled={currentMaterialIndex >= listeningMaterials.length - 1}
                   className="p-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                 >

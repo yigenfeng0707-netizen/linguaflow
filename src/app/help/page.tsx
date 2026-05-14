@@ -11,8 +11,8 @@ import {
   Settings,
   Headphones,
   ChevronRight,
-  ExternalLink,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -70,6 +70,7 @@ const popularArticles = [
 ]
 
 export default function HelpPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
@@ -104,6 +105,7 @@ export default function HelpPage() {
             {helpCategories.map((category) => (
               <div
                 key={category.title}
+                onClick={() => router.push(`/help/${category.title}`)}
                 className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
               >
                 <div className={`w-12 h-12 ${category.color} rounded-xl flex items-center justify-center mb-4`}>

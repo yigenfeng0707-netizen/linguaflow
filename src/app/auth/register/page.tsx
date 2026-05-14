@@ -179,7 +179,29 @@ export default function RegisterPage() {
 
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    if (!formData.username.trim()) {
+                      toast.error('请输入用户名')
+                      return
+                    }
+                    if (!formData.email.trim()) {
+                      toast.error('请输入邮箱地址')
+                      return
+                    }
+                    if (!formData.password) {
+                      toast.error('请输入密码')
+                      return
+                    }
+                    if (formData.password.length < 8) {
+                      toast.error('密码至少需要8位字符')
+                      return
+                    }
+                    if (formData.password !== formData.confirmPassword) {
+                      toast.error('两次输入的密码不一致')
+                      return
+                    }
+                    setStep(2)
+                  }}
                   className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all"
                 >
                   下一步

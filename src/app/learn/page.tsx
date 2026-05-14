@@ -1,17 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { 
   BookOpen, 
-  Trophy, 
   Flame, 
   Target, 
   Clock, 
   TrendingUp,
-  ChevronRight,
   Star,
-  Award
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 

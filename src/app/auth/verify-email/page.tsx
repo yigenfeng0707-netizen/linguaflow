@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { BookOpen, Mail, CheckCircle, ArrowRight } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
 export default function VerifyEmailPage() {
-  const router = useRouter()
   const [verifying, setVerifying] = useState(false)
   const [verified, setVerified] = useState(false)
   const [resending, setResending] = useState(false)

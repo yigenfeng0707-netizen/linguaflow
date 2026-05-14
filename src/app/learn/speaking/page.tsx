@@ -115,6 +115,7 @@ export default function SpeakingPage() {
       setCurrentSentenceIndex((prev) => prev + 1)
       setHasRecorded(false)
       setShowChinese(false)
+      setIsRecording(false)
     }
   }
 
@@ -123,6 +124,7 @@ export default function SpeakingPage() {
       setCurrentSentenceIndex((prev) => prev - 1)
       setHasRecorded(false)
       setShowChinese(false)
+      setIsRecording(false)
     }
   }
 

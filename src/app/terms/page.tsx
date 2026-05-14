@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -11,7 +9,7 @@ export default function TermsPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">服务条款</h1>
-        <p className="text-gray-500 mb-8">最后更新日期：2024年5月1日</p>
+        <p className="text-gray-500 mb-8">最后更新日期：2026年5月14日</p>
 
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-10 space-y-8">
           <section>
@@ -86,7 +84,7 @@ export default function TermsPage() {
             <ul className="text-gray-700 mt-2 space-y-1 list-disc list-inside">
               <li>邮箱：support@linguaflow.com</li>
               <li>电话：400-888-9999</li>
-              <li>地址：北京市朝阳区xxx路xxx号</li>
+              <li>地址：中国上海市浦东新区</li>
             </ul>
           </section>
         </div>

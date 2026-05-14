@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   Mail,
   Phone,
@@ -31,7 +32,7 @@ const contactInfo = [
   {
     icon: MapPin,
     title: '地址',
-    content: '北京市朝阳区xxx路xxx号',
+    content: '中国上海市浦东新区',
     description: 'LinguaFlow 总部',
     color: 'bg-purple-500',
   },
@@ -218,12 +219,12 @@ export default function ContactPage() {
               <p className="text-sm text-gray-600 mb-4">
                 在联系我们之前，你可以先查看常见问题页面，也许能快速找到答案。
               </p>
-              <a
+              <Link
                 href="/faq"
                 className="inline-flex items-center text-sm text-primary-600 font-medium hover:text-primary-700"
               >
                 查看常见问题 &rarr;
-              </a>
+              </Link>
             </div>
           </div>
         </div>
